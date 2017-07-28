@@ -1,0 +1,119 @@
+{
+  "objects" : [
+    {
+      "id" : "Default",
+      "scheduleType" : "cron",
+      "failureAndRerunMode" : "CASCADE",
+      "schedule" : {
+        "ref" : "DefaultSchedule"
+      },
+      "name" : "Default",
+      "role" : "DataPipelineDefaultRole",
+      "resourceRole" : "DataPipelineDefaultResourceRole"
+    },
+    {
+      "id" : "EC2ResourceObj",
+      "terminateAfter" : "70 Minutes",
+      "instanceType" : "#{myInstanceType}",
+      "name" : "EC2ResourceObj",
+      "type" : "Ec2Resource",
+      "securityGroupIds" : [
+        "#{mySrcSecGroupID}"
+      ],
+      "subnetId" : "#{mySubnetID}",
+      "associatePublicIpAddress" : "true",
+      "imageId" : "#{myImageID}"
+    },
+    {
+      "id" : "DefaultSchedule",
+      "name" : "Every Day",
+      "startAt" : "FIRST_ACTIVATION_DATE_TIME",
+      "type" : "Schedule",
+      "period" : "1 Days"
+    },
+    {
+      "id" : "ShellCommandActivityObj",
+      "name" : "ShellCommandActivityObj",
+      "runsOn" : {
+        "ref" : "EC2ResourceObj"
+      },
+      "command" : "#{myShellCmd}",
+      "scriptArgument" : [
+        "#{myEfsSource}",
+        "#{myS3Backup}",
+        "#{myEfsID}",
+        "#{myS3Region}"
+      ],
+      "type" : "ShellCommandActivity",
+      "stage" : "true"
+    }
+  ],
+  "parameters" : [
+    {
+      "id" : "myShellCmd",
+      "default" : "wget https://raw.githubusercontent.com/wdalmut/aws-data-pipeline/master/backup-nfs-to-s3/efs-backup.sh\nchmod a+x efs-backup.sh\n./efs-backup.sh $1 $2 $3 $4",
+      "description" : "Shell command to run.",
+      "type" : "String"
+    },
+    {
+      "id" : "myInstanceType",
+      "default" : "m3.medium",
+      "description" : "Instance type for creating backups.",
+      "allowedValues" : [
+        "t1.micro",
+        "m3.medium",
+        "m3.large",
+        "m3.xlarge",
+        "m3.2xlarge",
+        "c3.large",
+        "c3.xlarge",
+        "c3.2xlarge",
+        "c3.4xlarge",
+        "c3.8xlarge"
+      ],
+      "type" : "String"
+    },
+    {
+      "id" : "mySubnetID",
+      "default" : "subnet-1234abcd",
+      "description" : "VPC subnet for your backup EC2 instance (ideally the same subnet used for the production EFS mount point).",
+      "type" : "String"
+    },
+    {
+      "id" : "mySrcSecGroupID",
+      "default" : "sg-1111111b",
+      "description" : "Security group that can connect to the Production EFS mount point.",
+      "type" : "String"
+    },
+    {
+      "id" : "myEfsID",
+      "default" : "backup-fs-12345678",
+      "description" : "Name for the directory that will contain your backups.",
+      "type" : "String"
+    },
+    {
+      "id" : "myEfsSource",
+      "default" : "10.0.1.32:/",
+      "description" : "Production EFS mount target IP address.",
+      "type" : "String"
+    },
+    {
+      "id" : "myS3Backup",
+      "default" : "destination.bucket",
+      "description" : "Backup S3 Bucket",
+      "type" : "String"
+    },
+    {
+      "id" : "myS3Region",
+      "default" : "eu-central-1",
+      "description" : "S3 Destination bucket region",
+      "type" : "String"
+    },
+    {
+      "id" : "myImageID",
+      "default" : "ami-12345678",
+      "description" : "AMI ID for the EC2 instance.",
+      "type" : "String"
+    }
+  ]
+}
