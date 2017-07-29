@@ -34,8 +34,6 @@ fi
 echo "sudo rm /tmp/efs-backup.log"
 sudo rm /tmp/efs-backup.log
 echo "sudo aws s3 cp --region $region --recursive /backup s3://$destination/$efsid/$folder"
-sudo aws s3 cp --region $region --recursive /backup s3://$destination/$efsid/$folder > /tmp/efs-backup.log
+sudo aws s3 cp --region $region --recursive /backup s3://$destination/$efsid/$folder
 rsyncStatus=$?
-echo "sudo cp /tmp/efs-backup.log /mnt/backups/efsbackup-logs/$efsid-`date +%Y%m%d-%H%M`.log"
-sudo cp /tmp/efs-backup.log /mnt/backups/efsbackup-logs/$efsid-`date +%Y%m%d-%H%M`.log
 exit $rsyncStatus
